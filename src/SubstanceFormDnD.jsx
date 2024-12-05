@@ -18,91 +18,107 @@ const SubstanceFormDnD = () => {
   const [droppedItems, setDroppedItems] = useState([]);
 
   const handleDragStart = (e, item, type) => {
-    e.dataTransfer.setData('text/plain', JSON.stringify({ text: item, type }));
+    e.dataTransfer.setData('text/plain', JSON.stringify({ item, type }));
+  };
+
+  const handleDrop = (e) => {
+    e.preventDefault();
+    const data = e.dataTransfer.getData('text/plain');
+    if (data) {
+      const parsedData = JSON.parse(data);
+      setDroppedItems([...droppedItems, parsedData]);
+    }
   };
 
   const handleDragOver = (e) => {
     e.preventDefault();
   };
 
-  const handleDrop = (e) => {
-    e.preventDefault();
-    const droppedItem = JSON.parse(e.dataTransfer.getData('text/plain'));
-    
-    // Prevent duplicates
-    if (!droppedItems.some(item => item.text === droppedItem.text)) {
-      setDroppedItems(prev => [...prev, droppedItem]);
-    }
-  };
-
-  const removeItem = (text) => {
-    setDroppedItems(prev => prev.filter(item => item.text !== text));
-  };
-
-  const renderDraggableList = (items, type) => {
-    return items.map(item => (
-      <div 
-        key={item}
-        draggable 
-        onDragStart={(e) => handleDragStart(e, item, type)}
-        className={`p-2 m-1 border rounded cursor-move 
-          ${type === 'substance' ? 'bg-blue-100' : 'bg-green-100'}`}
-      >
-        {item}
-      </div>
-    ));
-  };
-
   return (
-    <div className="container mx-auto p-4">
-      <h1 className="text-3xl font-bold text-center mb-4">
-        Sustancias y Formas
-      </h1>
-      <p className="text-center mb-6">
-        Arrastra y suelta sustancias y formas para crear combinaciones únicas.
-      </p>
-      
-      <div className="grid grid-cols-3 gap-4">
-        {/* Columna de Sustancias */}
-        <div className="border p-4">
-          <h2 className="text-xl font-semibold mb-4">Sustancias</h2>
-          {renderDraggableList(SUBSTANCES, 'substance')}
-        </div>
-        
-        {/* Zona Central de Drop */}
-        <div 
-          className="border p-4 min-h-[300px]"
-          onDragOver={handleDragOver}
-          onDrop={handleDrop}
-        >
-          <h2 className="text-xl font-semibold mb-4">Zona de Combinación</h2>
-          <div className="flex flex-wrap gap-2">
-            {droppedItems.map((item) => (
-              <div 
-                key={item.text} 
-                className={`p-2 m-1 border rounded flex items-center 
-                  ${item.type === 'substance' ? 'bg-blue-100' : 'bg-green-100'}`}
-              >
-                {item.text}
-                <button 
-                  onClick={() => removeItem(item.text)} 
-                  className="ml-2 text-red-500"
-                >
-                  ✖
-                </button>
-              </div>
-            ))}
+    <div style={styles.container}>
+      <div style={styles.listContainer}>
+        <h3>Sustancias</h3>
+        {SUBSTANCES.map((substance) => (
+          <div
+            key={substance}
+            draggable
+            onDragStart={(e) => handleDragStart(e, substance, 'substance')}
+            style={styles.draggableItem}
+          >
+            {substance}
           </div>
-        </div>
-        
-        {/* Columna de Formas */}
-        <div className="border p-4">
-          <h2 className="text-xl font-semibold mb-4">Formas</h2>
-          {renderDraggableList(FORMS, 'form')}
-        </div>
+        ))}
+      </div>
+
+      <div style={styles.listContainer}>
+        <h3>Formas</h3>
+        {FORMS.map((form) => (
+          <div
+            key={form}
+            draggable
+            onDragStart={(e) => handleDragStart(e, form, 'form')}
+            style={styles.draggableItem}
+          >
+            {form}
+          </div>
+        ))}
+      </div>
+
+      <div
+        style={styles.dropZone}
+        onDrop={handleDrop}
+        onDragOver={handleDragOver}
+      >
+        <h3>Zona de Drop</h3>
+        {droppedItems.map((item, index) => (
+          <div key={index} style={styles.droppedItem}>
+            {item.type}: {item.item}
+          </div>
+        ))}
       </div>
     </div>
   );
+};
+
+const styles = {
+  container: {
+    display: 'flex',
+    flexWrap: 'wrap',
+    gap: '16px',
+    padding: '16px',
+  },
+  listContainer: {
+    flex: '1 1 200px',
+    minWidth: '200px',
+    border: '1px solid #ccc',
+    borderRadius: '8px',
+    padding: '16px',
+  },
+  draggableItem: {
+    padding: '8px',
+    margin: '4px 0',
+    backgroundColor: '#f0f0f0',
+    borderRadius: '4px',
+    cursor: 'grab',
+  },
+  dropZone: {
+    flex: '1 1 100%',
+    minHeight: '200px',
+    border: '2px dashed #aaa',
+    borderRadius: '8px',
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: '16px',
+    backgroundColor: '#fafafa',
+  },
+  droppedItem: {
+    marginTop: '8px',
+    padding: '4px',
+    backgroundColor: '#e0e0e0',
+    borderRadius: '4px',
+  },
 };
 
 export default SubstanceFormDnD;
